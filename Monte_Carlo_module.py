@@ -4,30 +4,51 @@ from random import randrange, random
 from numpy import round, dot, log
 from numpy.random import rand
 from math import exp
+
+
 # =============================================================================
 # Monte Carlo Move Functions
 # =============================================================================
 
+Ntot = 500              # Total number of particles
+T = 1.1                 # Reduced temperature
+beta = 1.0 / T           
+
+# Move step sizes (to be tuned for ~50% acceptance)
+dr_max = 0.084     # Max displacement (tuned for ~50% of acceptance)
+dlnV_max = 0.01         # Max log-volume change
+swap_attempts = int(0.02 * Ntot)  # ~2% of particles per cycle
+
+
 def displacement_move(positions,box_length):
     """Random displacement of a single particle (NVT move)."""
-    i = randrange(len(positions))
-    old_pos = positions[i].copy()
+    # Pick a random particle from all particles within the box. 
+    
+    i = randrange(len(positions)) # The index of a random particle (uniform distribution) within the array
+    old_pos = positions[i].copy() # We store the position of the i-th particle as the old position
+    
     # Compute local energy before move
     E_old = sum(pair_energy(dot((old_pos - positions[j] - round((old_pos-positions[j])/box_length)*box_length), 
                                    (old_pos - positions[j] - round((old_pos-positions[j])/box_length)*box_length)))
                 for j in range(len(positions)) if j != i)
+    
     # Propose displacement
-    dr = (rand(3) * 2 - 1) * dr_max
-    positions[i] = (old_pos + dr) % box_length
+    dr = (rand(3) * 2 - 1) * dr_max # We ensure that the displacement is uniform [-dr_max,dr_max] in all three directions.
+    positions[i] = (old_pos + dr) % box_length # We ensure PBC by doing this... like PacMan 
     # Compute local energy after move
     new_pos = positions[i]
     E_new = sum(pair_energy(dot((new_pos - positions[j] - round((new_pos-positions[j])/box_length)*box_length), 
                                    (new_pos - positions[j] - round((new_pos-positions[j])/box_length)*box_length)))
                 for j in range(len(positions)) if j != i)
-    # Metropolis criterion
+
+    # =====================================================
+    #  Metropolis criterion
+    # =====================================================
     if random() < exp(-beta * (E_new - E_old)):
+        # If an uniform random number within [0,1) is less than exp(-beta * DeltaE), the move is accepted.
         return True
     else:
+        # Otherwise, we restore the old_position and return False
         positions[i] = old_pos
         return False
 

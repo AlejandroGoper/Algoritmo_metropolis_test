@@ -20,13 +20,8 @@ N2 = Ntot - N1 # Number of particles in box 2
 V1 = Vtot / 2 # Volume of box 1 
 V2 = Vtot - V1 # Volume of box 2
 
-# Move step sizes (to be tuned for ~50% acceptance)
-dr_max = 0.2            # Max displacement
-dlnV_max = 0.01         # Max log-volume change
-swap_attempts = int(0.02 * Ntot)  # ~2% of particles per cycle
-
 # Number of Monte Carlo cycles
-n_cycles = 50000
+n_cycles = 1000
 
 # =============================================================================
 # Gibbs Ensemble: Monte Carlo Loop
@@ -43,10 +38,15 @@ def run_gibbs_ensemble():
     total_energy_box_1 = total_energy(positions_box_1, box_1_length) 
     total_energy_box_2 = total_energy(positions_box_2, box_2_length)
 
+    count = 0
+
     # Storage for averages
     densities = []
 
     for cycle in range(n_cycles):
+        result = displacement_move(positions_box_1,box_1_length)
+        if result == True:
+            count +=1
         # 1) Displacement moves
         
         # 2) Volume exchange move
@@ -54,7 +54,9 @@ def run_gibbs_ensemble():
         # 3) Particle transfer moves
         
         # Record densities
-        return densities
+        #return densities
+    
+    print(count)
 
 
 # ===============================================================================
