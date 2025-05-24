@@ -1,7 +1,7 @@
 # Import modules
 from Energy_module import pair_energy, total_energy
 from Monte_Carlo_module import displacement_move, volume_move, transfer_move
-from Box_module import init_positions
+from Box_module import init_positions, plot_boxes
 
 # Import python modules
 import random
@@ -15,10 +15,10 @@ rho_tot = 0.6           # Total reduced density
 Vtot = Ntot / rho_tot   # Total reduced volume
 
 # Box parameters (Split into two boxes)
-N1 = Ntot // 2
-N2 = Ntot - N1
-V1 = Vtot / 2
-V2 = Vtot - V1
+N1 = Ntot // 2 # Number of particles in box 1
+N2 = Ntot - N1 # Number of particles in box 2
+V1 = Vtot / 2 # Volume of box 1 
+V2 = Vtot - V1 # Volume of box 2
 
 # Move step sizes (to be tuned for ~50% acceptance)
 dr_max = 0.2            # Max displacement
@@ -28,15 +28,16 @@ swap_attempts = int(0.02 * Ntot)  # ~2% of particles per cycle
 # Number of Monte Carlo cycles
 n_cycles = 50000
 
-
 # =============================================================================
 # Gibbs Ensemble: Monte Carlo Loop
 # =============================================================================
 
 def run_gibbs_ensemble():
     # Initialize positions and box sizes
-    # Work in progress...
-    
+    positions_box_1, box_1_length = init_positions(N1,V1)
+    positions_box_2, box_2_length = init_positions(N2,V2)
+    plot_boxes(positions_box_1, box_1_length, positions_box_2, box_2_length)
+
     # Storage for averages
     densities = []
 
