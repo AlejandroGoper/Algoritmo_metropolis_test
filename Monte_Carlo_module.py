@@ -3,8 +3,12 @@ from Energy_module import pair_energy, total_energy
 # =============================================================================
 # Monte Carlo Move Functions
 # =============================================================================
-def displacement_move(x,cajas, npart, beta, vmax):
-     # Energía del estado actual
+
+def displacement_move():
+    return None
+
+def volume_move(x,cajas, npart, beta, vmax):
+    # Energía del estado actual
     vmin = 0.01 * vmax  # esto es para evitar que una caja colapse
     vmax_abs = 10 * vmax
     enlo1 = total_energy(x,0,cajas[0][0])
@@ -50,9 +54,6 @@ def displacement_move(x,cajas, npart, beta, vmax):
         return cajas[0][0], cajas[1][0]# Retorna los valores originales
 
     return box1n, box2n  # Aceptado: retorna nuevos valores
-
-def volume_move():
-    return None
 
 def transfer_move():
     return None
