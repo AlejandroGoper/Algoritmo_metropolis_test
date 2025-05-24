@@ -14,7 +14,7 @@ Ntot = 500              # Total number of particles
 rho_tot = 0.6           # Total reduced density
 Vtot = Ntot / rho_tot   # Total reduced volume
 
-# Split into two regions (boxes)
+# Box parameters (Split into two boxes)
 N1 = Ntot // 2
 N2 = Ntot - N1
 V1 = Vtot / 2
