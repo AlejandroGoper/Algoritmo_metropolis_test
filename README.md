@@ -28,6 +28,8 @@ V = \frac{N}{\rho_{\text{total}}}.
 $$
 ## Function displacement_move(x,cajas, npart, beta, vmax)
 
-x is a tuple of the form [np.zeros((npart, 3)), np.zeros(npart)] the first entry is an array whith the positions of the particles and the second has a value of either 1 or 0 indicating the box.
+x is a tuple of the form [np.zeros((npart, 3)), np.zeros(npart)] the first entry is an array whith the positions of the particles and the second has a value of either 1 or 0 indicating the box. 
+
 cajas is a tuple with the entries [np.array([caja1L, 0]), np.array([caja2L, 0])] cajas[0], cajas[1] have the lenght and number of particles of each box
-noart is the number of particles, beta is 1/T where T is the reduced temperature and vmax is the total volunm
+
+npart is the number of particles, beta is 1/T where T is the reduced temperature and vmax is the total volunm
