@@ -1,11 +1,35 @@
 #Importamos los modulos de energia
 from Energy_module import pair_energy, total_energy
+from random import randrange, random
+from numpy import round, dot, log
+from numpy.random import rand
+from math import exp
 # =============================================================================
 # Monte Carlo Move Functions
 # =============================================================================
 
-def displacement_move():
-    return None
+def displacement_move(positions,box_length):
+    """Random displacement of a single particle (NVT move)."""
+    i = randrange(len(positions))
+    old_pos = positions[i].copy()
+    # Compute local energy before move
+    E_old = sum(pair_energy(dot((old_pos - positions[j] - round((old_pos-positions[j])/box_length)*box_length), 
+                                   (old_pos - positions[j] - round((old_pos-positions[j])/box_length)*box_length)))
+                for j in range(len(positions)) if j != i)
+    # Propose displacement
+    dr = (rand(3) * 2 - 1) * dr_max
+    positions[i] = (old_pos + dr) % box_length
+    # Compute local energy after move
+    new_pos = positions[i]
+    E_new = sum(pair_energy(dot((new_pos - positions[j] - round((new_pos-positions[j])/box_length)*box_length), 
+                                   (new_pos - positions[j] - round((new_pos-positions[j])/box_length)*box_length)))
+                for j in range(len(positions)) if j != i)
+    # Metropolis criterion
+    if random() < exp(-beta * (E_new - E_old)):
+        return True
+    else:
+        positions[i] = old_pos
+        return False
 
 def volume_move(x,cajas, npart, beta, vmax):
     # Energía del estado actual
@@ -19,8 +43,8 @@ def volume_move(x,cajas, npart, beta, vmax):
     vol_diff = vol2 - vol1
 
     # Random walk en ln(V1/V2)
-    lnvn = np.log(vol1 / vol2) + (np.random.rand() - 0.5) * vmax/5
-    v1n = vol1 * np.exp(lnvn) / (1 + np.exp(lnvn))
+    lnvn = log(vol1 / vol2) + (rand() - 0.5) * vmax/5
+    v1n = vol1 * exp(lnvn) / (1 + exp(lnvn))
     v2n = vol1 + vol2 - v1n
     if v1n < vmin or v2n < vmin or v1n > vmax_abs or v2n > vmax_abs: #Si una caja colapsó rechazamos
         return cajas[0][0], cajas[1][0]
@@ -39,11 +63,11 @@ def volume_move(x,cajas, npart, beta, vmax):
     en2n = total_energy(x,1,box2n)
 
     #Exponente del criterio de aceptacion
-    arg1 = -beta * (en1n - enlo1) + (cajas[0][1] + 1) * np.log(v1n / vol1) / beta
-    arg2 = -beta * (en2n - enlo2) + (cajas[1][1] + 1) * np.log(v2n / vol2) / beta
+    arg1 = -beta * (en1n - enlo1) + (cajas[0][1] + 1) * log(v1n / vol1) / beta
+    arg2 = -beta * (en2n - enlo2) + (cajas[1][1] + 1) * log(v2n / vol2) / beta
 
     # Regla de aceptación
-    if np.random.rand() > np.exp(arg1 + arg2):
+    if rand() > exp(arg1 + arg2):
         # Rechazado: restaurar configuración antigua
         for i in range(npart):
             if x[1][i] == 0:
