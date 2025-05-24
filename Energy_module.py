@@ -30,6 +30,5 @@ def total_energy(positions, box_length):
                 E += pair_energy(r2)
     # Simple mean-field tail correction
     rho = N / box_length**3
-    E += (8.0/3.0) * pi * rho * N * epsilon * \
-         ( (sigma/rcut)**9 / 3 - (sigma/rcut)**3 )
+    E += (8.0/3.0) * pi * rho * N * epsilon * ( (sigma/rcut)**9 / 3 - (sigma/rcut)**3 )
     return E

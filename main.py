@@ -36,7 +36,12 @@ def run_gibbs_ensemble():
     # Initialize positions and box sizes
     positions_box_1, box_1_length = init_positions(N1,V1)
     positions_box_2, box_2_length = init_positions(N2,V2)
-    plot_boxes(positions_box_1, box_1_length, positions_box_2, box_2_length)
+    # For the moment ignore this line
+    #plot_boxes(positions_box_1, box_1_length, positions_box_2, box_2_length) 
+
+    # Calculating energy
+    total_energy_box_1 = total_energy(positions_box_1, box_1_length) 
+    total_energy_box_2 = total_energy(positions_box_2, box_2_length)
 
     # Storage for averages
     densities = []
