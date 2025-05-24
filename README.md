@@ -1,3 +1,11 @@
+# Physical system
+
+The article says that we need to use a box with N particles. This box will be splitted into two boxes with a non-physical barrier, which means that this barrier is not physical it does not exist to the particles. 
+
+On the other hand, the particles are arranged in a lattice-like configuration, which means that each particle is evenly-spaced across the whole volume. 
+
+This is exactly what the Box_module is in charge of. 
+
 # Reduced Temperature and Density
 
 Here we consider the expression for the reduced density in a Lennard-Jones system:
