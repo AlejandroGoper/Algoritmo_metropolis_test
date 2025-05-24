@@ -33,3 +33,29 @@ x is a tuple of the form [np.zeros((npart, 3)), np.zeros(npart)] the first entry
 cajas is a tuple with the entries [np.array([caja1L, 0]), np.array([caja2L, 0])] cajas[0], cajas[1] have the lenght and number of particles of each box
 
 npart is the number of particles, beta is 1/T where T is the reduced temperature and vmax is the total volunm
+
+# Parameters of the Monte Carlo Moves 
+
+
+## Displacement move
+Every time we try a particle‐displacement move, we pick a random vector $\Delta r$ whose components lie uniformly in $\left[ -\Delta r_{\text{Max}}, \Delta r _{\text{Max}}\right]$.
+
+If $\Delta r _{\text{Max}}$ is too large, almost all proposed moves will land in high‐energy overlap configurations and be rejected, which could affect the acceptance ratio.
+
+In the opposite case, nearly every move is accepted, but we only explore configuration space very slowly.
+
+We’ll typically tune $\Delta r_{\text{Max}}$ by running a short test and adjusting up or down until we hit that target (the one that gives us 50% of acceptance ratio).
+
+## Transfer move 
+```
+swap_attempts = int(0.02 * Ntot)
+```
+
+This sets how many particle‐transfer moves we attempt in each Monte Carlo cycle—here, about 2% of our total particle count per cycle (that's what the article says). 
+
+## Volume move
+
+Pending...
+
+
+
