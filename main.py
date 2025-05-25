@@ -16,7 +16,7 @@ rcut = 2.5              # Cut-off distance for tailing correction
 LJ_epsilon = 1.0        # Parameter of Lennard-Jones potential
 LJ_sigma = 1.0          # Parameter of Lennard-Jones potential
 dr_max = 0.084          # Maximum step in random displacemt 
-dlnV_max = 0.01*Vtot        # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
+dlnV_max = 0.01*Vtot       # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
 
 # Box parameters (Split into two boxes)
 N1 = Ntot // 2 # Number of particles in box 1
