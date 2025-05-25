@@ -71,7 +71,7 @@ class MonteCarloSimulation(LennardJones):
     def volume_move(self,x,cajas, npart, beta, vmax):
         # Energía del estado actual
         vmin = 0.01 * vmax  # esto es para evitar que una caja colapse
-        vmax_abs = 10 * vmax
+        vmax_abs = vmax
 
         # Reversing logic
         pos1, pos2, L1, L2 = reverse_logic_adjustment(x,cajas)
@@ -83,7 +83,7 @@ class MonteCarloSimulation(LennardJones):
         vol_diff = vol2 - vol1
 
         # Random walk en ln(V1/V2)
-        lnvn = log(vol1 / vol2) + (rand() - 0.5) * vmax/5
+        lnvn = log(vol1 / vol2) + (2*rand() - 1) * self.dlnV_max # Adjusting logic to tune the parameter for 50% Acceptance
         v1n = vol1 * exp(lnvn) / (1 + exp(lnvn))
         v2n = vol1 + vol2 - v1n
         if v1n < vmin or v2n < vmin or v1n > vmax_abs or v2n > vmax_abs: #Si una caja colapsó rechazamos
@@ -110,14 +110,15 @@ class MonteCarloSimulation(LennardJones):
         # Regla de aceptación
         if rand() > exp(arg1 + arg2):
             # Rechazado: restaurar configuración antigua
+            print("Rechazado")
             for i in range(npart):
                 if x[1][i] == 0:
                     factor = cajas[0][0] / box1n
                 else:
                     factor = cajas[1][0]/ box2n
                 x[0][i] *= factor
-            return cajas[0][0], cajas[1][0]# Retorna los valores originales
-        return box1n, box2n  # Aceptado: retorna nuevos valores
+            return cajas[0][0], cajas[1][0], False # Retorna los valores originales
+        return box1n, box2n, True  # Aceptado: retorna nuevos valores
 
     def transfer_move(self,pos1, pos2, L1, L2):
         """

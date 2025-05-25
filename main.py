@@ -16,7 +16,7 @@ rcut = 2.5              # Cut-off distance for tailing correction
 LJ_epsilon = 1.0        # Parameter of Lennard-Jones potential
 LJ_sigma = 1.0          # Parameter of Lennard-Jones potential
 dr_max = 0.084          # Maximum step in random displacemt 
-dlnV_max = 0.01         # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
+dlnV_max = 0.01*Vtot        # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
 
 # Box parameters (Split into two boxes)
 N1 = Ntot // 2 # Number of particles in box 1
@@ -25,7 +25,7 @@ V1 = Vtot / 2 # Volume of box 1
 V2 = Vtot - V1 # Volume of box 2
 
 # Number of Monte Carlo cycles
-n_cycles = 1000
+n_cycles = 100
 
 # =============================================================================
 #  Class Initialization
@@ -51,16 +51,21 @@ def run_gibbs_ensemble():
 
     # Storage for averages
     densities = []
-    original = positions_box_1.copy()
     print(total_energy_box_1)
+    count=0
     for cycle in range(n_cycles):
         
         # 1) Displacement moves
-        accepted = simulation.displacement_move(positions=positions_box_1, box_length=box_1_length)
+        #accepted = simulation.displacement_move(positions=positions_box_1, box_length=box_1_length)
 
         # 2) Volume exchange move
-        # x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
-        # result = volume_move(x,cajas,npart, beta, vmax)
+        x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
+        box1n, box2n, accepted = simulation.volume_move(x,cajas,npart, beta, vmax)
+        if(not accepted):
+            continue
+        else:
+            print("Accepted")
+            count +=1
         # 3) Particle transfer moves
         
 
@@ -73,8 +78,8 @@ def run_gibbs_ensemble():
 
         # Record densities
         #return densities
+    print("Acceptance:", count/n_cycles)
     print(simulation.total_energy(positions_box_1, box_1_length))
-    plot_boxes(original, box_1_length, positions_box_1, box_1_length)
 
 
 
