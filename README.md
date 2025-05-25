@@ -63,7 +63,7 @@ This sets how many particle‐transfer moves we attempt in each Monte Carlo cycl
 
 ## Volume move
 
-Here we don't consider PBC... still pending evaluating the effect on this choice. The Metropolis criterion also meets the condition of $50\%$ of acceptance.
+Here we don't consider PBC... still pending evaluating the effect on this choice (it looks like if nothing happened). The Metropolis criterion also meets the condition of 50% of acceptance. The parameter that gives this result appears to be $\frac{V_{\text{max}}}{5}$. However, this leads to a distribution of $[- 0.5 *\delta, 0.5 *\delta)$ instead of the desired $[-\delta, \delta)$. 
 
 
 
