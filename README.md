@@ -63,7 +63,7 @@ This sets how many particle‐transfer moves we attempt in each Monte Carlo cycl
 
 ## Volume move
 
-Pending...
+Here we don't consider PBC... still pending evaluating the effect on this choice. The Metropolis criterion also meets the condition of $50\%$ of acceptance.
 
 
 
