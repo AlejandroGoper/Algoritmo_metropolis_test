@@ -102,7 +102,6 @@ def volume_move(x,cajas, npart, beta, vmax):
                 factor = cajas[1][0]/ box2n
             x[0][i] *= factor
         return cajas[0][0], cajas[1][0]# Retorna los valores originales
-    print("Pass")
     return box1n, box2n  # Aceptado: retorna nuevos valores
 
 def transfer_move():
