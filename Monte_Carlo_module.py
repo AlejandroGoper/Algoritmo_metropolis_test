@@ -2,7 +2,7 @@
 from Energy_module import pair_energy, total_energy
 from Box_module import reverse_logic_adjustment
 from random import randrange, random
-from numpy import round, dot, log
+from numpy import round, dot, log, delete, vstack
 from numpy.random import rand
 from math import exp
 
@@ -13,7 +13,13 @@ from math import exp
 
 Ntot = 500              # Total number of particles
 T = 1.1                 # Reduced temperature
-beta = 1.0 / T           
+beta = 1.0 / T   
+
+# Lennard-Jones parameters (reduced units) 
+epsilon = 1.0
+sigma = 1.0
+rcut = 2.5 * sigma
+
 
 # Move step sizes (to be tuned for ~50% acceptance)
 dr_max = 0.084     # Max displacement (tuned for ~50% of acceptance)
@@ -29,19 +35,27 @@ def displacement_move(positions,box_length):
     old_pos = positions[i].copy() # We store the position of the i-th particle as the old position
     
     # Compute local energy before move
-    E_old = sum(pair_energy(dot((old_pos - positions[j] - round((old_pos-positions[j])/box_length)*box_length), 
-                                   (old_pos - positions[j] - round((old_pos-positions[j])/box_length)*box_length)))
-                for j in range(len(positions)) if j != i)
-    
+    E_old = 0.0
+    for j in range(len(positions)):
+        if j == i: continue
+        dr = old_pos - positions[j]
+        dr -= round(dr/box_length) * box_length
+        r2 = dot(dr, dr)
+        if r2 < rcut**2:
+            E_old += pair_energy(r2)
     # Propose displacement
     dr = (rand(3) * 2 - 1) * dr_max # We ensure that the displacement is uniform [-dr_max,dr_max] in all three directions.
     positions[i] = (old_pos + dr) % box_length # We ensure PBC by doing this... like PacMan 
     # Compute local energy after move
     new_pos = positions[i]
-    E_new = sum(pair_energy(dot((new_pos - positions[j] - round((new_pos-positions[j])/box_length)*box_length), 
-                                   (new_pos - positions[j] - round((new_pos-positions[j])/box_length)*box_length)))
-                for j in range(len(positions)) if j != i)
-
+    E_new = 0.0
+    for j in range(len(positions)):
+        if j == i: continue
+        dr = new_pos - positions[j]
+        dr -= round(dr/box_length) * box_length
+        r2 = dot(dr, dr)
+        if r2 < rcut**2:
+            E_new += pair_energy(r2)
     # =====================================================
     #  Metropolis criterion
     # =====================================================
@@ -104,5 +118,76 @@ def volume_move(x,cajas, npart, beta, vmax):
         return cajas[0][0], cajas[1][0]# Retorna los valores originales
     return box1n, box2n  # Aceptado: retorna nuevos valores
 
-def transfer_move():
-    return None
+def transfer_move(pos1, pos2, L1, L2):
+    """
+    Particle transfer move matching the paper's Eq. (7) form:
+    ΔW_rev = ΔE_local + kT * [ 
+        N_recv * ln((N_recv+1)/N_recv) 
+      + N_don  * ln((N_don-1)/N_don)
+      + ln(V_don/(N_don-1)) 
+      - ln(V_recv/(N_recv+1))
+    ]
+    """
+    # Decide donor and receiver
+    if random() < 0.5:
+        donor, receiver, Ld, Lr = pos2, pos1, L2, L1
+        donor_is_box2 = True
+    else:
+        donor, receiver, Ld, Lr = pos1, pos2, L1, L2
+        donor_is_box2 = False
+
+    Nd = len(donor)
+    Nr = len(receiver)
+    Vd = Ld ** 3
+    Vr = Lr ** 3
+
+    # Local energy removal from donor
+    idx = randrange(Nd)
+    old_pos = donor[idx].copy()
+    E_old = 0.0
+    for j in range(Nd):
+        if j == idx:
+            continue
+        dr = old_pos - donor[j]
+        dr -= round(dr / Ld) * Ld
+        r2 = dot(dr, dr)
+        if r2 < rcut**2:
+            E_old += pair_energy(r2)
+
+    # Remove particle
+    donor_new = delete(donor, idx, axis=0)
+
+    # Local energy insertion into receiver
+    trial = rand(3) * Lr
+    E_test = 0.0
+    r_overlap = 0.001 # Condition for no overlapping
+    for j in range(Nr):
+        dr = trial - receiver[j]
+        dr -= round(dr / Lr) * Lr
+        r2 = dot(dr, dr)
+        if r2 < r_overlap**2:
+            # Immediate reject: overlap too severe
+            return pos1, pos2, L1, L2, False
+    
+        if r2 < rcut**2:
+            E_test += pair_energy(r2)
+    receiver_new = vstack([receiver, trial])
+
+    # Entropic term from paper's Eq. (7)
+    delta_log = (
+        Nr * log((Nr + 1) / Nr)
+      + Nd * log((Nd - 1) / Nd)
+      + log(Vd / (Nd - 1))
+      - log(Vr / (Nr + 1))
+    )
+
+    # 5) Metropolis acceptance: exp(-beta * ΔE_local - delta_log)
+    if random() < exp(-beta * (E_test - E_old) - delta_log):
+        # Assign back to pos1/pos2 depending on donor box
+        if donor_is_box2:
+            return pos1, donor_new, L1, Ld, True  # pos2 replaced
+        else:
+            return donor_new, pos2, Ld, L2, True  # pos1 replaced
+    else:
+        # Reject: return originals
+        return pos1, pos2, L1, L2, False
