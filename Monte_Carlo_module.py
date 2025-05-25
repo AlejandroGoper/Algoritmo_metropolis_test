@@ -24,7 +24,6 @@ rcut = 2.5 * sigma
 # Move step sizes (to be tuned for ~50% acceptance)
 dr_max = 0.084     # Max displacement (tuned for ~50% of acceptance)
 dlnV_max = 0.01         # Max log-volume change
-swap_attempts = int(0.02 * Ntot)  # ~2% of particles per cycle
 
 
 def displacement_move(positions,box_length):
@@ -160,12 +159,13 @@ def transfer_move(pos1, pos2, L1, L2):
     # Local energy insertion into receiver
     trial = rand(3) * Lr
     E_test = 0.0
-    r_overlap = 0.001 # Condition for no overlapping
+    r_overlap = 0.0001 # Condition for no overlapping
     for j in range(Nr):
         dr = trial - receiver[j]
         dr -= round(dr / Lr) * Lr
         r2 = dot(dr, dr)
         if r2 < r_overlap**2:
+            print("Overlap")
             # Immediate reject: overlap too severe
             return pos1, pos2, L1, L2, False
     
@@ -181,13 +181,15 @@ def transfer_move(pos1, pos2, L1, L2):
       - log(Vr / (Nr + 1))
     )
 
-    # 5) Metropolis acceptance: exp(-beta * ΔE_local - delta_log)
+    # =====================================================
+    #  Metropolis criterion
+    # =====================================================
     if random() < exp(-beta * (E_test - E_old) - delta_log):
         # Assign back to pos1/pos2 depending on donor box
         if donor_is_box2:
-            return pos1, donor_new, L1, Ld, True  # pos2 replaced
+            return receiver_new, donor_new, Lr, Ld, True  # pos2 replaced
         else:
-            return donor_new, pos2, Ld, L2, True  # pos1 replaced
+            return donor_new, receiver_new, Ld, Lr, True  # pos1 replaced
     else:
         # Reject: return originals
         return pos1, pos2, L1, L2, False

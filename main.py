@@ -10,8 +10,8 @@ import math
 # Simulation control parameters
 T = 1.1                 # Reduced temperature
 beta = 1.0 / T           
-Ntot = 500              # Total number of particles
-rho_tot = 0.6           # Total reduced density
+Ntot = 256              # Total number of particles
+rho_tot = 0.3           # Total reduced density
 Vtot = Ntot / rho_tot   # Total reduced volume
 
 # Box parameters (Split into two boxes)
@@ -21,7 +21,7 @@ V1 = Vtot / 2 # Volume of box 1
 V2 = Vtot - V1 # Volume of box 2
 
 # Number of Monte Carlo cycles
-n_cycles = 10
+n_cycles = 1000
 
 # =============================================================================
 # Gibbs Ensemble: Monte Carlo Loop
@@ -46,10 +46,18 @@ def run_gibbs_ensemble():
         # 1) Displacement moves
         #displacement_move()
         # 2) Volume exchange move
-        x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
-        result = volume_move(x,cajas,npart, beta, vmax)
+        # x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
+        # result = volume_move(x,cajas,npart, beta, vmax)
         # 3) Particle transfer moves
         
+
+        pos1, pos2, L1, L2, accepted = transfer_move(pos1=positions_box_1, pos2=positions_box_2, L1= box_1_length, L2=box_2_length)
+        print("Originals", len(positions_box_1), len(positions_box_2), "Accepted:", accepted)
+        
+        if(accepted):
+            print("New ones:", len(pos1), len(pos2))
+            plot_boxes(pos1, L1, pos2, L2)
+
         # Record densities
         #return densities
 
