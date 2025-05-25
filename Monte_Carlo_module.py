@@ -1,5 +1,6 @@
 #Importamos los modulos de energia
 from Energy_module import pair_energy, total_energy
+from Box_module import reverse_logic_adjustment
 from random import randrange, random
 from numpy import round, dot, log
 from numpy.random import rand
@@ -56,8 +57,11 @@ def volume_move(x,cajas, npart, beta, vmax):
     # Energía del estado actual
     vmin = 0.01 * vmax  # esto es para evitar que una caja colapse
     vmax_abs = 10 * vmax
-    enlo1 = total_energy(x,0,cajas[0][0])
-    enlo2 = total_energy(x,1,cajas[1][0])
+
+    # Reversing logic
+    pos1, pos2, L1, L2 = reverse_logic_adjustment(x,cajas)
+    enlo1 = total_energy(pos1,L1)
+    enlo2 = total_energy(pos2,L2)
 
     vol1 = cajas[0][0]**3
     vol2 =  cajas[1][0]**3
@@ -80,8 +84,9 @@ def volume_move(x,cajas, npart, beta, vmax):
         x[0][i] *= factor
 
     # Energía en la nueva configuración
-    en1n = total_energy(x,0,box1n)
-    en2n = total_energy(x,1,box2n)
+    pos1, pos2, L1, L2 = reverse_logic_adjustment(x,cajas)
+    en1n = total_energy(pos1,L1)
+    en2n = total_energy(pos2,L2)
 
     #Exponente del criterio de aceptacion
     arg1 = -beta * (en1n - enlo1) + (cajas[0][1] + 1) * log(v1n / vol1) / beta
@@ -97,7 +102,7 @@ def volume_move(x,cajas, npart, beta, vmax):
                 factor = cajas[1][0]/ box2n
             x[0][i] *= factor
         return cajas[0][0], cajas[1][0]# Retorna los valores originales
-
+    print("Pass")
     return box1n, box2n  # Aceptado: retorna nuevos valores
 
 def transfer_move():
