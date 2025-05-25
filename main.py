@@ -1,7 +1,7 @@
 # Import modules
 from Energy_module import pair_energy, total_energy
 from Monte_Carlo_module import displacement_move, volume_move, transfer_move
-from Box_module import init_positions, plot_boxes
+from Box_module import init_positions, plot_boxes, logic_adjustment
 
 # Import python modules
 import random
@@ -21,7 +21,7 @@ V1 = Vtot / 2 # Volume of box 1
 V2 = Vtot - V1 # Volume of box 2
 
 # Number of Monte Carlo cycles
-n_cycles = 1000
+n_cycles = 10
 
 # =============================================================================
 # Gibbs Ensemble: Monte Carlo Loop
@@ -38,25 +38,21 @@ def run_gibbs_ensemble():
     total_energy_box_1 = total_energy(positions_box_1, box_1_length) 
     total_energy_box_2 = total_energy(positions_box_2, box_2_length)
 
-    count = 0
-
     # Storage for averages
     densities = []
 
     for cycle in range(n_cycles):
-        result = displacement_move(positions_box_1,box_1_length)
-        if result == True:
-            count +=1
+        
         # 1) Displacement moves
-        
+        #displacement_move()
         # 2) Volume exchange move
-        
+        x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
+        result = volume_move(x,cajas,npart, beta, vmax)
         # 3) Particle transfer moves
         
         # Record densities
         #return densities
-    
-    print(count)
+
 
 
 # ===============================================================================
