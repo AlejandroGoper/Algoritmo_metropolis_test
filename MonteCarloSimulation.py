@@ -60,7 +60,7 @@ class MonteCarloSimulation(LennardJones):
         # =====================================================
         #  Metropolis criterion
         # =====================================================
-        if random() < exp(-self.beta * (E_new - E_old)):
+        if random() < exp(-self.beta * (E_new - E_old)): #Modifique esto localmente, si veo que jala bien lo actualizare aqui tambien
             # If an uniform random number within [0,1) is less than exp(-beta * DeltaE), the move is accepted.
             return True
         else:
@@ -116,9 +116,15 @@ class MonteCarloSimulation(LennardJones):
             + N2 * log(V2_new / V2_old)
             - beta * dU
         )
-        acc_prob = min(1.0,exp(ln_ratio))
+        if ln_ratio >= 0:
+            acc_prob = 1.0
+        else:
+            try:
+                acc_prob = exp(ln_ratio)
+            except OverflowError:
+                acc_prob = 0.0
 
-        if np.random.rand() < acc_prob:
+        if rand() < acc_prob:
             # Aceptado
             return L1_new, L2_new, True
         else:
