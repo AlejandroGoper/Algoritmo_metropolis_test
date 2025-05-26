@@ -2,7 +2,7 @@
 from Energy_module import LennardJones
 from Box_module import reverse_logic_adjustment
 from random import randrange, random
-from numpy import round, dot, log, delete, vstack,exp
+from numpy import round, dot, log, delete, vstack
 from numpy.random import rand
 from math import exp
 
