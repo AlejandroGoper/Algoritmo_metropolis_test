@@ -34,7 +34,7 @@ n_cycles = 100
 # =============================================================================
 
 simulation = MonteCarloSimulation(particles=Ntot, red_temperature=T,LJ_epsilon=LJ_epsilon, LJ_sigma=LJ_sigma,
-                                  LJ_rcut=rcut, dr_max=dr_max, dlnV_max=dlnV_max)
+                                  LJ_rcut=rcut, dr_max=dr_max, dlnV_max=dV_max)
 
 # =============================================================================
 # Gibbs Ensemble: Monte Carlo Loop
