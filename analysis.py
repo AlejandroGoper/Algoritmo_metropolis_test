@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.optimize import curve_fit
-from main import run_gibbs_ensemble()
+from main import run_gibbs_ensemble
 from scipy.signal import find_peaks
 from scipy.optimize import curve_fit
 ## Here we do the data analisys
