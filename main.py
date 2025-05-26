@@ -17,6 +17,7 @@ LJ_epsilon = 1.0        # Parameter of Lennard-Jones potential
 LJ_sigma = 1.0          # Parameter of Lennard-Jones potential
 dr_max = 0.084          # Maximum step in random displacemt 
 dlnV_max = 0.01*Vtot       # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
+swap_attempts = int(0.02*Vtot) # Article reccomends this value
 
 # Box parameters (Split into two boxes)
 N1 = Ntot // 2 # Number of particles in box 1
@@ -45,41 +46,40 @@ def run_gibbs_ensemble():
     # For the moment ignore this line
     #plot_boxes(positions_box_1, box_1_length, positions_box_2, box_2_length) 
 
+    # Melting each box by applying sucessive displacement moves
+    for _ in range(10000):
+        simulation.displacement_move(positions_box_1, box_1_length)
+        simulation.displacement_move(positions_box_2,box_2_length)
+
     # Calculating energy
     total_energy_box_1 = simulation.total_energy(positions_box_1, box_1_length) 
     total_energy_box_2 = simulation.total_energy(positions_box_2, box_2_length)
 
-    # Storage for averages
+    # Storage variables
     densities = []
-    print(total_energy_box_1)
-    count=0
+    # Main cycle
     for cycle in range(n_cycles):
         
         # 1) Displacement moves
-        #accepted = simulation.displacement_move(positions=positions_box_1, box_length=box_1_length)
-
+        for _ in range(N1):
+            accepted_dmb1 = simulation.displacement_move(positions=positions_box_1, box_length=box_1_length)
+        for _ in range(N2):
+            accepted_dmb2 = simulation.displacement_move(positions=positions_box_2, box_length=box_2_length)
         # 2) Volume exchange move
+        
+        # Still pending complete integration ...
         x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
         box1n, box2n, accepted = simulation.volume_move(x,cajas,npart, beta, vmax)
-        if(not accepted):
-            continue
-        else:
-            print("Accepted")
-            count +=1
-        # 3) Particle transfer moves
-        
 
-        #pos1, pos2, L1, L2, accepted = transfer_move(pos1=positions_box_1, pos2=positions_box_2, L1= box_1_length, L2=box_2_length)
-        #print("Originals", len(positions_box_1), len(positions_box_2), "Accepted:", accepted)
-        
-        #if(accepted):
-        #    print("New ones:", len(pos1), len(pos2))
-        #    plot_boxes(pos1, L1, pos2, L2)
+        # 3) Particle transfer moves
+    
+        for _ in range(swap_attempts):
+            pos1, pos2, L1, L2, accepted = simulation.transfer_move(pos1=positions_box_1, pos2=positions_box_2, L1= box_1_length, L2=box_2_length)
 
         # Record densities
+        densities.append((len(pos1)/L1**3, len(pos2)/L2**3))
         #return densities
-    print("Acceptance:", count/n_cycles)
-    print(simulation.total_energy(positions_box_1, box_1_length))
+    print(densities)
 
 
 

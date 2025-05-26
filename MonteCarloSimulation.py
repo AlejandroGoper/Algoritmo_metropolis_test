@@ -110,7 +110,6 @@ class MonteCarloSimulation(LennardJones):
         # Regla de aceptación
         if rand() > exp(arg1 + arg2):
             # Rechazado: restaurar configuración antigua
-            print("Rechazado")
             for i in range(npart):
                 if x[1][i] == 0:
                     factor = cajas[0][0] / box1n
