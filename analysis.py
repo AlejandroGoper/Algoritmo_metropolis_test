@@ -8,7 +8,7 @@ from scipy.optimize import curve_fit
 ## Here we do the data analisys
 
 densities,avg_v_fraction, avg_n_fraction,T = run_gibbs_ensemble()
-info_equilibrio = [[],[],[],[]] #Aqui se guarda la informacion de equilibrio, cuatro entradas: densidad de la fase ,gas,densidad critica (en caso de haber),liquida y temperatura
+info_equilibrio = [] #Aqui se guarda la informacion de equilibrio
 
 #Primero graficamos para encontrar a que numero de ciclos se encuentra en equibilirbio
 dens1, dens2 = zip(*densities)
