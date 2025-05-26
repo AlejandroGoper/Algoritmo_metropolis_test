@@ -3,7 +3,7 @@ from MonteCarloSimulation import MonteCarloSimulation
 from Box_module import init_positions, plot_boxes, logic_adjustment,reverse_logic_adjustment
 
 # Import python modules
-from random import rand
+from numpy.random import rand
 import math
 
 # Simulation control parameters  
