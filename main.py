@@ -3,7 +3,7 @@ from MonteCarloSimulation import MonteCarloSimulation
 from Box_module import init_positions, plot_boxes, logic_adjustment,reverse_logic_adjustment
 
 # Import python modules
-import random
+from random import rand
 import math
 
 # Simulation control parameters  
@@ -73,7 +73,7 @@ def run_gibbs_ensemble():
             accepted_dmb2 = simulation.displacement_move(positions=positions_box_2, box_length=box_2_length)
         # 2) Volume exchange move
         
-        if random.rand() < volumen_attemps_perswap*swap_attempts:
+        if rand() < volumen_attemps_perswap*swap_attempts:
           x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
           cajas[0][0],cajas[1][0], accepted = simulation.volume_move(x,cajas,npart, beta, dv_max)
           positions_box_1, positions_box_2, box_1_length, box_2_length = reverse_logic_adjustment(x, cajas) #Actualizamos dimensiones de cajas
