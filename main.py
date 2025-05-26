@@ -16,7 +16,7 @@ rcut = 2.5              # Cut-off distance for tailing correction
 LJ_epsilon = 1.0        # Parameter of Lennard-Jones potential
 LJ_sigma = 1.0          # Parameter of Lennard-Jones potential
 dr_max = 0.084          # Maximum step in random displacemt 
-dlnV_max = 0.01*Vtot       # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
+dV_max = 1*Vtot     # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
 swap_attempts = int(0.02*Vtot) # Article reccomends this value
 volumen_attemps_perswap = 0.1 #Number of volumen chance per swap attemps 
 cycle_averaging = 50 #every "cycle_averaging" cylces we take the avarage and save the information
@@ -75,7 +75,7 @@ def run_gibbs_ensemble():
         
         if random.rand() < volumen_attemps_perswap*swap_attempts:
           x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
-          cajas[0][0],cajas[1][0], accepted = simulation.volume_move(x,cajas,npart, beta, vmax)
+          cajas[0][0],cajas[1][0], accepted = simulation.volume_move(x,cajas,npart, beta, dv_max)
           positions_box_1, positions_box_2, box_1_length, box_2_length = reverse_logic_adjustment(x, cajas) #Actualizamos dimensiones de cajas
         # 3) Particle transfer moves
     
