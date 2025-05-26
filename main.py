@@ -6,9 +6,7 @@ from Box_module import init_positions, plot_boxes, logic_adjustment
 import random
 import math
 
-# Simulation control parameters
-T = 1.1                 # Reduced temperature
-beta = 1.0 / T           
+# Simulation control parameters    
 Ntot = 100              # Total number of particles
 rho_tot = 0.3           # Total reduced density
 Vtot = Ntot / rho_tot   # Total reduced volume
@@ -18,7 +16,8 @@ LJ_sigma = 1.0          # Parameter of Lennard-Jones potential
 dr_max = 0.084          # Maximum step in random displacemt 
 dlnV_max = 0.01*Vtot       # Maximum step in the ratio of volumes using the parametrization v_new1/v_new2 = exp(dlV_max) 
 swap_attempts = int(0.02*Vtot) # Article reccomends this value
-
+volumen_attemps_perswap = 0.1 #Number of volumen chance per swap attemps 
+cycle_averaging = 50 #every "cycle_averaging" cylces we take the avarage and save the information
 # Box parameters (Split into two boxes)
 N1 = Ntot // 2 # Number of particles in box 1
 N2 = Ntot - N1 # Number of particles in box 2
@@ -57,6 +56,11 @@ def run_gibbs_ensemble():
 
     # Storage variables
     densities = []
+    v_fraction = []
+    n_fraction = [] 
+    avg_densities = []
+    avg_v_fraction = []
+    avg_n_fraction = []
     # Main cycle
     for cycle in range(n_cycles):
         
@@ -67,10 +71,10 @@ def run_gibbs_ensemble():
             accepted_dmb2 = simulation.displacement_move(positions=positions_box_2, box_length=box_2_length)
         # 2) Volume exchange move
         
-        # Still pending complete integration ...
-        x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
-        box1n, box2n, accepted = simulation.volume_move(x,cajas,npart, beta, vmax)
-
+        if random.rand() < volumen_attemps_perswap*swap_attempts:
+          x, cajas, npart, vmax = logic_adjustment(positions_box_1, positions_box_2, box_1_length, box_2_length)
+          cajas[0][0],cajas[1][0], accepted = simulation.volume_move(x,cajas,npart, beta, vmax)
+          positions_box_1, positions_box_2, box_1_length, box_2_length = reverse_logic_adjustment(x, cajas) #Actualizamos dimensiones de cajas
         # 3) Particle transfer moves
     
         for _ in range(swap_attempts):
@@ -78,8 +82,18 @@ def run_gibbs_ensemble():
 
         # Record densities
         densities.append((len(pos1)/L1**3, len(pos2)/L2**3))
-        #return densities
-    print(densities)
+        v_fraction.append(((L1**3)/Vtot, (L2**3)/Vtot))
+        n_fraction.append((len(pos1)/Ntot, len(pos2)/Ntot))
+        if cycle % cycle_averaging == 0: #We take the mean, we dont need that much amount of data
+          avg_densities.append(tuple(sum(x)/len(x) for x in zip(*densities)))
+          avg_v_fraction.append(tuple(sum(x)/len(x) for x in zip(*v_fraction)))
+          avg_n_fraction.append(tuple(sum(x)/len(x) for x in zip(*n_fraction)))
+          #we empty the tuples for memory saving
+          densities =[]
+          v_fraction = []
+          n_fraction=[]
+        return avg_densities,avg_v_fraction, avg_n_fraction
+    #print(densities)
 
 
 
