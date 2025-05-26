@@ -6,7 +6,9 @@ from Box_module import init_positions, plot_boxes, logic_adjustment
 import random
 import math
 
-# Simulation control parameters    
+# Simulation control parameters  
+T = 1.1
+beta = 1/T
 Ntot = 100              # Total number of particles
 rho_tot = 0.3           # Total reduced density
 Vtot = Ntot / rho_tot   # Total reduced volume
