@@ -46,7 +46,7 @@ class MonteCarloSimulation(LennardJones):
                 E_old += self.pair_energy(r2)
         # Propose displacement
         dr = (rand(3) * 2 - 1) * self.dr_max # We ensure that the displacement is uniform [-dr_max,dr_max] in all three directions.
-        positions[i] = (old_pos + dr) % box_length # We ensure PBC by doing this... like PacMan 
+        positions[i] = (old_pos + dr) % box_length
         # Compute local energy after move
         new_pos = positions[i]
         E_new = 0.0
