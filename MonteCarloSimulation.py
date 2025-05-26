@@ -68,56 +68,69 @@ class MonteCarloSimulation(LennardJones):
             positions[i] = old_pos
             return False
 
-    def volume_move(self,x,cajas, npart, beta, vmax):
-        # Energía del estado actual
-        vmin = 0.01 * vmax  # esto es para evitar que una caja colapse
-        vmax_abs = vmax
+    def volume_move(self, x, cajas, npart, beta, dV_max):
+        # Obtener volúmenes y número de partículas
+        L1_old = cajas[0][0]
+        L2_old = cajas[1][0]
+        V1_old = L1_old ** 3
+        V2_old = L2_old ** 3
+        V_total = V1_old + V2_old
+        N1 = cajas[0][1]
+        N2 = cajas[1][1]
+        vmin = 0.01 * V_total
 
-        # Reversing logic
-        pos1, pos2, L1, L2 = reverse_logic_adjustment(x,cajas)
-        enlo1 = self.total_energy(pos1,L1)
-        enlo2 = self.total_energy(pos2,L2)
+        # Proponer nuevo volumen para caja 1
+        deltaV = (2 * np.random.rand() - 1) * dV_max
+        V1_new = V1_old + deltaV
+        V2_new = V_total - V1_new
 
-        vol1 = cajas[0][0]**3
-        vol2 =  cajas[1][0]**3
-        vol_diff = vol2 - vol1
+        # Verificación de volúmenes mínimos
+        if V1_new < vmin or V2_new < vmin:
+            return L1_old, L2_old, False
 
-        # Random walk en ln(V1/V2)
-        lnvn = log(vol1 / vol2) + (2*rand() - 1) * self.dlnV_max # Adjusting logic to tune the parameter for 50% Acceptance
-        v1n = vol1 * exp(lnvn) / (1 + exp(lnvn))
-        v2n = vol1 + vol2 - v1n
-        if v1n < vmin or v2n < vmin or v1n > vmax_abs or v2n > vmax_abs: #Si una caja colapsó rechazamos
-            return cajas[0][0], cajas[1][0]
-        box1n = v1n**(1/3)
-        box2n = v2n**(1/3)
+        # Reescalado de longitudes de caja
+        L1_new = V1_new ** (1/3)
+        L2_new = V2_new ** (1/3)
+
         # Reescalado de posiciones
         for i in range(npart):
             if x[1][i] == 0:
-                factor = box1n / cajas[0][0]
+                factor = L1_new / L1_old
             else:
-                factor = box2n / cajas[1][0]
+                factor = L2_new / L2_old
             x[0][i] *= factor
 
-        # Energía en la nueva configuración
-        pos1, pos2, L1, L2 = reverse_logic_adjustment(x,cajas)
-        en1n = self.total_energy(pos1,L1)
-        en2n = self.total_energy(pos2,L2)
+        # Calcular energías nueva y vieja
+        pos1, pos2, L1_tmp, L2_tmp = reverse_logic_adjustment(x, [[L1_new, N1], [L2_new, N2]])
+        U1_new = self.total_energy(pos1, L1_tmp)
+        U2_new = self.total_energy(pos2, L2_tmp)
 
-        #Exponente del criterio de aceptacion
-        arg1 = -self.beta * (en1n - enlo1) + (cajas[0][1] + 1) * log(v1n / vol1) / self.beta
-        arg2 = -self.beta * (en2n - enlo2) + (cajas[1][1] + 1) * log(v2n / vol2) / self.beta
+        pos1_old, pos2_old, L1_old_tmp, L2_old_tmp = reverse_logic_adjustment(x, [[L1_old, N1], [L2_old, N2]])
+        U1_old = self.total_energy(pos1_old, L1_old_tmp)
+        U2_old = self.total_energy(pos2_old, L2_old_tmp)
 
-        # Regla de aceptación
-        if rand() > exp(arg1 + arg2):
-            # Rechazado: restaurar configuración antigua
+        # Regla de aceptación (Ecuación 8.3.2)
+        dU = (U1_new + U2_new) - (U1_old + U2_old)
+        ln_ratio = (
+            N1 * np.log(V1_new / V1_old)
+            + N2 * np.log(V2_new / V2_old)
+            - beta * dU
+        )
+        acc_prob = min(1.0, np.exp(ln_ratio))
+
+        if np.random.rand() < acc_prob:
+            # Aceptado
+            return L1_new, L2_new, True
+        else:
+            # Rechazado → restaurar las posiciones
             for i in range(npart):
                 if x[1][i] == 0:
-                    factor = cajas[0][0] / box1n
+                    factor = L1_old / L1_new
                 else:
-                    factor = cajas[1][0]/ box2n
+                    factor = L2_old / L2_new
                 x[0][i] *= factor
-            return cajas[0][0], cajas[1][0], False # Retorna los valores originales
-        return box1n, box2n, True  # Aceptado: retorna nuevos valores
+            return L1_old, L2_old, False
+
 
     def transfer_move(self,pos1, pos2, L1, L2):
         """
