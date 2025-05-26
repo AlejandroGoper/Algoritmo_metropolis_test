@@ -2,7 +2,7 @@
 from Energy_module import LennardJones
 from Box_module import reverse_logic_adjustment
 from random import randrange, random
-from numpy import round, dot, log, delete, vstack
+from numpy import round, dot, log, delete, vstack,exp
 from numpy.random import rand
 from math import exp
 
@@ -80,7 +80,7 @@ class MonteCarloSimulation(LennardJones):
         vmin = 0.01 * V_total
 
         # Proponer nuevo volumen para caja 1
-        deltaV = (2 * np.random.rand() - 1) * dV_max
+        deltaV = (2 * rand() - 1) * dV_max
         V1_new = V1_old + deltaV
         V2_new = V_total - V1_new
 
@@ -112,11 +112,11 @@ class MonteCarloSimulation(LennardJones):
         # Regla de aceptación (Ecuación 8.3.2)
         dU = (U1_new + U2_new) - (U1_old + U2_old)
         ln_ratio = (
-            N1 * np.log(V1_new / V1_old)
-            + N2 * np.log(V2_new / V2_old)
+            N1 *log(V1_new / V1_old)
+            + N2 * log(V2_new / V2_old)
             - beta * dU
         )
-        acc_prob = min(1.0, np.exp(ln_ratio))
+        acc_prob = min(1.0,exp(ln_ratio))
 
         if np.random.rand() < acc_prob:
             # Aceptado
