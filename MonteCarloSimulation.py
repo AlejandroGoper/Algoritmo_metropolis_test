@@ -46,7 +46,7 @@ class MonteCarloSimulation(LennardJones):
                 E_old += self.pair_energy(r2)
         # Propose displacement
         dr = (rand(3) * 2 - 1) * self.dr_max # We ensure that the displacement is uniform [-dr_max,dr_max] in all three directions.
-        positions[i] = (old_pos + dr) % box_length
+        positions[i] = (old_pos + dr) % box_length # We ensure PBC by doing this... like PacMan 
         # Compute local energy after move
         new_pos = positions[i]
         E_new = 0.0
@@ -60,7 +60,15 @@ class MonteCarloSimulation(LennardJones):
         # =====================================================
         #  Metropolis criterion
         # =====================================================
-        if random() < exp(-self.beta * (E_new - E_old)): #Modifique esto localmente, si veo que jala bien lo actualizare aqui tambien
+        log_prob = -self.beta * (E_new - E_old)
+        if log_prob >= 0:
+            acc_prob = 1.0
+        else:
+            try:
+                acc_prob = exp(log_prob)
+            except OverflowError:
+                acc_prob = 0.0
+        if rand() < acc_prob:
             # If an uniform random number within [0,1) is less than exp(-beta * DeltaE), the move is accepted.
             return True
         else:
@@ -91,7 +99,9 @@ class MonteCarloSimulation(LennardJones):
         # Reescalado de longitudes de caja
         L1_new = V1_new ** (1/3)
         L2_new = V2_new ** (1/3)
-
+        pos1_old, pos2_old, L1_old_tmp, L2_old_tmp = reverse_logic_adjustment(x, [[L1_old, N1], [L2_old, N2]])
+        U1_old = self.total_energy(pos1_old, L1_old_tmp)
+        U2_old = self.total_energy(pos2_old, L2_old_tmp)
         # Reescalado de posiciones
         for i in range(npart):
             if x[1][i] == 0:
@@ -104,10 +114,6 @@ class MonteCarloSimulation(LennardJones):
         pos1, pos2, L1_tmp, L2_tmp = reverse_logic_adjustment(x, [[L1_new, N1], [L2_new, N2]])
         U1_new = self.total_energy(pos1, L1_tmp)
         U2_new = self.total_energy(pos2, L2_tmp)
-
-        pos1_old, pos2_old, L1_old_tmp, L2_old_tmp = reverse_logic_adjustment(x, [[L1_old, N1], [L2_old, N2]])
-        U1_old = self.total_energy(pos1_old, L1_old_tmp)
-        U2_old = self.total_energy(pos2_old, L2_old_tmp)
 
         # Regla de aceptación (Ecuación 8.3.2)
         dU = (U1_new + U2_new) - (U1_old + U2_old)
@@ -157,6 +163,8 @@ class MonteCarloSimulation(LennardJones):
             donor_is_box2 = False
 
         Nd = len(donor)
+        if Nd <= 1: #if the donor doesnt have particle to donate we reject
+            return pos1, pos2, L1, L2, False
         Nr = len(receiver)
         Vd = Ld ** 3
         Vr = Lr ** 3
@@ -178,7 +186,8 @@ class MonteCarloSimulation(LennardJones):
         donor_new = delete(donor, idx, axis=0)
 
         # Local energy insertion into receiver
-        trial = rand(3) * Lr
+        
+        trial = rand(3) * Lr 
         E_test = 0.0
         r_overlap = 0.0001 # Condition for no overlapping
         for j in range(Nr):
@@ -205,7 +214,15 @@ class MonteCarloSimulation(LennardJones):
         # =====================================================
         #  Metropolis criterion
         # =====================================================
-        if random() < exp(-self.beta * (E_test - E_old) - delta_log):
+        log_prob = -self.beta * (E_test - E_old) - delta_log
+        if log_prob >= 0:
+            acc_prob = 1.0
+        else:
+            try:
+                acc_prob = exp(log_prob)
+            except OverflowError:
+                acc_prob = 0.0
+        if rand() <  acc_prob :
             # Assign back to pos1/pos2 depending on donor box
             if donor_is_box2:
                 return receiver_new, donor_new, Lr, Ld, True  # pos2 replaced
